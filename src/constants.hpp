@@ -49,18 +49,19 @@ struct rgbVec {
 	vector<vector<int>> r;
 	vector<vector<int>> v;
 	vector<vector<int>> b;
+
 	vector<vector<int>>& operator[](size_t index) {
-		if (index == 0) {
-			return r;
-		} else if (index == 1) {
-			return v;
-		} else if (index == 2) {
-			return b;
-		} else {
-			// Handle invalid index (throw an exception, return a default value, etc.)
-			// For simplicity, this example throws an exception.
-			throw std::out_of_range("Invalid channel index");
-		}
+		if (index == 0) return r;
+		if (index == 1) return v;
+		if (index == 2) return b;
+		throw std::out_of_range("Invalid channel index");
+	}
+
+	const vector<vector<int>>& operator[](size_t index) const {
+		if (index == 0) return r;
+		if (index == 1) return v;
+		if (index == 2) return b;
+		throw std::out_of_range("Invalid channel index");
 	}
 };
 

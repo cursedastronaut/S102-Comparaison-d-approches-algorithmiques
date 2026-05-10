@@ -1,5 +1,7 @@
 #include "nbgc.hpp"
 #include "filtre.hpp"
+#include <bits/stdc++.h>
+
 using namespace std;
 
 Image::Image(vector<vector<int>> red, vector<vector<int>> green, vector<vector<int>> blue) {
@@ -566,7 +568,7 @@ Image Image::visionDaltonisme(uint8_t type) {
 			int newV = static_cast<int>((float)img.r[x][y] * colorMatrix[1][0] / 100.f + (float)img.v[x][y] * colorMatrix[1][1] / 100.f + (float)img.b[x][y] * colorMatrix[1][2] / 100.f);
 			int newB = static_cast<int>((float)img.r[x][y] * colorMatrix[2][0] / 100.f + (float)img.v[x][y] * colorMatrix[2][1] / 100.f + (float)img.b[x][y] * colorMatrix[2][2] / 100.f);
 
-			// Set the new values to the output image
+			// Set the new values to the output imagergbVec
 			output.img.r[x][y] = std::min(255, std::max(0, newR));
 			output.img.v[x][y] = std::min(255, std::max(0, newV));
 			output.img.b[x][y] = std::min(255, std::max(0, newB));
@@ -601,4 +603,111 @@ Image Image::contourSobel() {
 	Filtre gradientFiltre(gradient, 1);
 	
 	return gradientFiltre.application(output);
+}
+
+// Implémentation :
+
+vector<vector<int>>& Image::operator[](size_t index) {
+	return img[index];
+}
+
+const vector<vector<int>>& Image::operator[](size_t index) const {
+	return img[index];
+}
+
+// Affectation
+Image& Image::operator=(const Image& other) {
+	if (this != &other) {
+		img = other.img;
+		longueur = other.longueur;
+		hauteur = other.hauteur;
+	}
+	return *this;
+}
+
+// Comparaison
+bool Image::operator==(const Image& other) const {
+	return (img.r == other.img.r &&
+			img.v == other.img.v &&
+			img.b == other.img.b);
+}
+
+bool Image::operator!=(const Image& other) const {
+	return !(*this == other);
+}
+
+// Addition
+Image Image::operator+(const Image& other) const {
+	Image result(*this);
+	result += other;
+	return result;
+}
+
+Image& Image::operator+=(const Image& other) {
+	if (longueur != other.longueur || hauteur != other.hauteur)
+		throw std::invalid_argument("Les dimensions doivent être identiques.");
+
+	for (size_t i = 0; i < hauteur; i++) {
+		for (size_t j = 0; j < longueur; j++) {
+			img.r[i][j] = std::min(255, img.r[i][j] + other.img.r[i][j]);
+			img.v[i][j] = std::min(255, img.v[i][j] + other.img.v[i][j]);
+			img.b[i][j] = std::min(255, img.b[i][j] + other.img.b[i][j]);
+		}
+	}
+	return *this;
+}
+
+// Soustraction
+Image Image::operator-(const Image& other) const {
+	Image result(*this);
+	result -= other;
+	return result;
+}
+
+Image& Image::operator-=(const Image& other) {
+	if (longueur != other.longueur || hauteur != other.hauteur)
+		throw std::invalid_argument("Les dimensions doivent être identiques.");
+
+	for (size_t i = 0; i < hauteur; i++) {
+		for (size_t j = 0; j < longueur; j++) {
+			img.r[i][j] = std::max(0, img.r[i][j] - other.img.r[i][j]);
+			img.v[i][j] = std::max(0, img.v[i][j] - other.img.v[i][j]);
+			img.b[i][j] = std::max(0, img.b[i][j] - other.img.b[i][j]);
+		}
+	}
+	return *this;
+}
+
+// Multiplication
+Image Image::operator*(float factor) const {
+	Image result(*this);
+	result *= factor;
+	return result;
+}
+
+Image& Image::operator*=(float factor) {
+	for (size_t i = 0; i < hauteur; i++) {
+		for (size_t j = 0; j < longueur; j++) {
+			img.r[i][j] = std::clamp(static_cast<int>(img.r[i][j] * factor), 0, 255);
+			img.v[i][j] = std::clamp(static_cast<int>(img.v[i][j] * factor), 0, 255);
+			img.b[i][j] = std::clamp(static_cast<int>(img.b[i][j] * factor), 0, 255);
+		}
+	}
+	return *this;
+}
+
+// Division
+Image Image::operator/(float factor) const {
+	if (factor == 0)
+		throw std::invalid_argument("Division par zéro.");
+	Image result(*this);
+	result /= factor;
+	return result;
+}
+
+Image& Image::operator/=(float factor) {
+	if (factor == 0)
+		throw std::invalid_argument("Division par zéro.");
+
+	return (*this *= (1.0f / factor));
 }

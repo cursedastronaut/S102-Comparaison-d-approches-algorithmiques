@@ -38,14 +38,14 @@ Image Filtre::application(Image &original) {
 	for (size_t x = 0; x < original.getLongueur(); ++x) {
 		for (size_t y = 0; y < original.getHauteur(); ++y) {
 			for (size_t channel = 0; channel < 3; ++channel) {
-				output.img[channel][x][y] = 0;
+				output[channel][x][y] = 0;
 
 				for (int i = -rayon; i <= rayon; ++i) {
 					for (int j = -rayon; j <= rayon; ++j) {
 						if (x + static_cast<size_t>(i) < original.getLongueur() &&
 							y + static_cast<size_t>(j) < original.getHauteur()) {
-							output.img[channel][x][y] +=
-								static_cast<int>(action[i + rayon][j + rayon] * original.img[channel][x + static_cast<size_t>(i)][y + static_cast<size_t>(j)]);
+							output[channel][x][y] +=
+								static_cast<int>(action[i + rayon][j + rayon] * original[channel][x + static_cast<size_t>(i)][y + static_cast<size_t>(j)]);
 						}
 					}
 				}

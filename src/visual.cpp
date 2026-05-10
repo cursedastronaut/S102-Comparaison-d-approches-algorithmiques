@@ -74,16 +74,16 @@ void VisualIDK::Draw() {
 			imageData.clear();
 			for (int y = 0; y < height; ++y) {
 				for (int x = 0; x < width; ++x) {
-					imageData.push_back(static_cast<unsigned char>(post.img.r[x][y]));
-					imageData.push_back(static_cast<unsigned char>(post.img.v[x][y]));
-					imageData.push_back(static_cast<unsigned char>(post.img.b[x][y]));
+					imageData.push_back(static_cast<unsigned char>(post[0][x][y]));
+					imageData.push_back(static_cast<unsigned char>(post[1][x][y]));
+					imageData.push_back(static_cast<unsigned char>(post[2][x][y]));
 					imageData.push_back(static_cast<unsigned char>(255));
 				}
 			}
 
 			glGenTextures(1, &textureID);
 			glBindTexture(GL_TEXTURE_2D, textureID);
-			glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB, post.img.r.size(), post.img.r[0].size(), 0, GL_RGBA, GL_UNSIGNED_BYTE, imageData.data());
+			glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB, post.getLongueur(), post.getHauteur(), 0, GL_RGBA, GL_UNSIGNED_BYTE, imageData.data());
 
 			// Set texture parameters (you may need to adjust these based on your requirements)
 			glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_LINEAR);

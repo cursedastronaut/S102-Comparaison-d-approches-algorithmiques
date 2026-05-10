@@ -92,10 +92,34 @@ class Image {
 
 		Image contourSobel();
 
-		rgbVec img;
+		// Accès direct aux canaux : image[couleur][x][y]
+		vector<vector<int>>& operator[](size_t index);
+		const vector<vector<int>>& operator[](size_t index) const;
+
+		// Affectation
+		Image& operator=(const Image& other);
+
+		// Comparaison
+		bool operator==(const Image& other) const;
+		bool operator!=(const Image& other) const;
+
+		// Addition / Soustraction pixel par pixel
+		Image operator+(const Image& other) const;
+		Image& operator+=(const Image& other);
+
+		Image operator-(const Image& other) const;
+		Image& operator-=(const Image& other);
+
+		// Multiplication / Division par scalaire
+		Image operator*(float factor) const;
+		Image& operator*=(float factor);
+
+		Image operator/(float factor) const;
+		Image& operator/=(float factor);
 	private:
-		uint32_t longueur;
-		uint32_t hauteur;
+		rgbVec		img;
+		uint32_t	longueur;
+		uint32_t	hauteur;
 };
 
 #endif //_NBGC_
