@@ -1,14 +1,18 @@
 EXE = main
 IMGUI_DIR = externals/include/imgui
+OBJ_DIR = objects
+
 SOURCES = src/main.cpp src/menu_files.cpp src/nbgc.cpp src/visual.cpp src/filtre.cpp
 SOURCES += $(IMGUI_DIR)/imgui.cpp $(IMGUI_DIR)/imgui_demo.cpp $(IMGUI_DIR)/imgui_draw.cpp $(IMGUI_DIR)/imgui_tables.cpp $(IMGUI_DIR)/imgui_widgets.cpp
 SOURCES += $(IMGUI_DIR)/backends/imgui_impl_glfw.cpp $(IMGUI_DIR)/backends/imgui_impl_opengl3.cpp
-OBJS = $(addprefix ./objects/, $(addsuffix .o, $(basename $(notdir $(SOURCES)))))
+OBJS = $(addprefix $(OBJ_DIR)/, $(addsuffix .o, $(basename $(notdir $(SOURCES)))))
+DEPS = $(OBJS:.o=.d)
+
 UNAME_S := $(shell uname -s)
 LINUX_GL_LIBS = -lGL
 
 CXXFLAGS = -std=c++17 -I$(IMGUI_DIR) -I$(IMGUI_DIR)/backends
-CXXFLAGS += -g -Wall -Wformat -Wno-narrowing -Lexternals/libs
+CXXFLAGS += -g -Wall -Wformat -Wno-narrowing -Lexternals/libs -MMD -MP
 LIBS =
 
 ##---------------------------------------------------------------------
@@ -26,20 +30,15 @@ LIBS =
 ifeq ($(UNAME_S), Linux) #LINUX
 	ECHO_MESSAGE = "Linux"
 	LIBS += $(LINUX_GL_LIBS) `pkg-config --static --libs glfw3`
-
 	CXXFLAGS += `pkg-config --cflags glfw3`
-	CFLAGS = $(CXXFLAGS)
 endif
 
 ifeq ($(UNAME_S), Darwin) #APPLE
 	ECHO_MESSAGE = "Mac OS X"
 	LIBS += -framework OpenGL -framework Cocoa -framework IOKit -framework CoreVideo
 	LIBS += -L/usr/local/lib -L/opt/local/lib -L/opt/homebrew/lib
-	#LIBS += -lglfw3
 	LIBS += -lglfw
-
 	CXXFLAGS += -I/usr/local/include -I/opt/local/include -I/opt/homebrew/include
-	CFLAGS = $(CXXFLAGS)
 endif
 
 ifeq ($(OS), Windows_NT)
@@ -50,26 +49,56 @@ ifeq ($(OS), Windows_NT)
 endif
 
 ##---------------------------------------------------------------------
-## BUILD RULES
+## DIRECTORY CREATION
 ##---------------------------------------------------------------------
 
-./objects/%.o: src/%.cpp
-	$(CXX) $(CXXFLAGS) -Iexternals/include -c -o $@ $<
+ifeq ($(OS), Windows_NT)
+	MKDIR_P = if not exist $(OBJ_DIR) mkdir $(OBJ_DIR)
+	RM = del /Q
+else
+	MKDIR_P = mkdir -p $(OBJ_DIR)
+	RM = rm -f
+endif
 
-./objects/%.o: $(IMGUI_DIR)/%.cpp
-	$(CXX) $(CXXFLAGS) -Iexternals/include -c -o $@ $<
-
-./objects/%.o: $(IMGUI_DIR)/backends/%.cpp
-	$(CXX) $(CXXFLAGS) -Iexternals/include -c -o $@ $<
 
 all: $(EXE)
 	@echo Build complete for $(ECHO_MESSAGE)
 
-$(EXE): $(OBJS)
-	$(CXX) -o $@ $^ $(CXXFLAGS) $(LIBS)
+##---------------------------------------------------------------------
+## LINKING
+##---------------------------------------------------------------------
+
+$(EXE): $(OBJ_DIR) $(OBJS)
+	$(CXX) -o $@ $(OBJS) $(CXXFLAGS) $(LIBS)
+
+##---------------------------------------------------------------------
+## OBJECT DIRECTORY
+##---------------------------------------------------------------------
+
+$(OBJ_DIR):
+	$(MKDIR_P)
+
+##---------------------------------------------------------------------
+## COMPILATION RULES
+##---------------------------------------------------------------------
+
+$(OBJ_DIR)/%.o: src/%.cpp
+	$(CXX) $(CXXFLAGS) -Iexternals/include -c $< -o $@
+
+$(OBJ_DIR)/%.o: $(IMGUI_DIR)/%.cpp
+	$(CXX) $(CXXFLAGS) -Iexternals/include -c $< -o $@
+
+$(OBJ_DIR)/%.o: $(IMGUI_DIR)/backends/%.cpp
+	$(CXX) $(CXXFLAGS) -Iexternals/include -c $< -o $@
+
+##---------------------------------------------------------------------
+## UTILITIES
+##---------------------------------------------------------------------
 
 clean:
-	rm -f $(EXE) $(OBJS)
+	$(RM) $(EXE) $(OBJS) $(DEPS)
 
-run:
+run: $(EXE)
 	./$(EXE)
+
+-include $(DEPS)

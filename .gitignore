@@ -10,7 +10,7 @@
 *.jpg
 *.ini
 #Objects
-objects/*.o
+objects
 #Compressed files
 *.zip
 #Useless imguiStuff
